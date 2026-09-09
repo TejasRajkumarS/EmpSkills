@@ -1,5 +1,5 @@
+import os
 from pathlib import Path
-from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -31,19 +31,22 @@ class Settings(BaseSettings):
         "learning_efficiency": 0.10,
     }
 
-    CORS_ORIGINS: list = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-    ]
+    # Kept as a plain string: pydantic-settings JSON-decodes complex (list/dict)
+    # env values, which crashes on comma-separated values like .env's
+    # CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def _parse_cors_origins(cls, v):
-        # Accept both "http://a,http://b" and JSON array formats
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+    @property
+    def cors_origin_list(self) -> list[str]:
+        raw = self.CORS_ORIGINS.strip()
+        if raw.startswith("["):
+            # Tolerate JSON array format too
+            import json
+            try:
+                return [str(o) for o in json.loads(raw)]
+            except json.JSONDecodeError:
+                pass
+        return [o.strip() for o in raw.split(",") if o.strip()]
 
     class Config:
         env_file = ".env"

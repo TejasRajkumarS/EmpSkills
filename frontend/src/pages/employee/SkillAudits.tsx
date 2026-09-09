@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { employeeApi, roleApi, analysisApi } from '../../services/api';
+import { CURRENT_EMPLOYEE_ID } from '../../context/AuthContext';
 import type { Employee, Role, AnalysisResponse } from '../../types';
 
 export function SkillAudits() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,10 +15,10 @@ export function SkillAudits() {
     async function fetchData() {
       try {
         const [empRes, roleRes] = await Promise.all([
-          employeeApi.getAll(),
+          employeeApi.getById(CURRENT_EMPLOYEE_ID),
           roleApi.getAll(),
         ]);
-        setEmployees(empRes.data);
+        setCurrentEmployee(empRes.data);
         setRoles(roleRes.data);
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -30,10 +30,10 @@ export function SkillAudits() {
   }, []);
 
   const handleAnalyze = async () => {
-    if (!selectedEmployeeId || !selectedRoleId) return;
+    if (!selectedRoleId) return;
     setAnalyzing(true);
     try {
-      const res = await analysisApi.analyze(selectedEmployeeId, selectedRoleId);
+      const res = await analysisApi.analyze(CURRENT_EMPLOYEE_ID, selectedRoleId);
       setAnalysis(res.data);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -51,7 +51,6 @@ export function SkillAudits() {
     );
   }
 
-  const selectedEmployee = employees.find(e => e.employee_id === selectedEmployeeId);
   const selectedRole = roles.find(r => r.target_role_id === selectedRoleId);
 
   return (
@@ -61,6 +60,37 @@ export function SkillAudits() {
         <p className="text-gray-600 mt-1">Analyze your skills against target role requirements</p>
       </div>
 
+      {currentEmployee && (
+        <div className="card">
+          <div className="card-header">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <h2 className="text-lg font-semibold text-gray-900">My Skill Profile</h2>
+              <p className="text-sm text-gray-600">
+                {currentEmployee.employee_name} • {currentEmployee.current_role} • {currentEmployee.skill_count} skills • avg {currentEmployee.average_proficiency.toFixed(1)}/5
+              </p>
+            </div>
+          </div>
+          <div className="card-body">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              {currentEmployee.skills.map(skill => (
+                <div key={skill.skill_id}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 text-sm">{skill.skill_name}</span>
+                    <span className="text-sm text-gray-600">{skill.proficiency}/5</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                    <div
+                      className="bg-primary-600 h-1.5 rounded-full"
+                      style={{ width: `${(skill.proficiency / 5) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-header">
           <h2 className="text-lg font-semibold text-gray-900">Run Skill Audit</h2>
@@ -68,19 +98,10 @@ export function SkillAudits() {
         <div className="card-body">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Employee</label>
-              <select
-                value={selectedEmployeeId}
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                className="select"
-              >
-                <option value="">Select yourself...</option>
-                {employees.map(e => (
-                  <option key={e.employee_id} value={e.employee_id}>
-                    {e.employee_name} ({e.employee_id})
-                  </option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Signed In As</label>
+              <div className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 select">
+                {currentEmployee ? `${currentEmployee.employee_name} (${currentEmployee.employee_id})` : 'Loading…'}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Target Role</label>
@@ -100,7 +121,7 @@ export function SkillAudits() {
           </div>
           <button
             onClick={handleAnalyze}
-            disabled={!selectedEmployeeId || !selectedRoleId || analyzing}
+            disabled={!selectedRoleId || analyzing}
             className="btn-primary"
           >
             {analyzing ? 'Analyzing...' : 'Run Skill Audit'}
@@ -116,7 +137,7 @@ export function SkillAudits() {
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Audit Results</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedEmployee?.employee_name} → {selectedRole?.target_role}
+                    {currentEmployee?.employee_name} → {selectedRole?.target_role}
                   </p>
                 </div>
               </div>

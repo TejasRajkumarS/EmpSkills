@@ -199,6 +199,70 @@ class DataService:
                 prerequisite_resource_ids=prereqs
             )
 
+    # Learning progress integration
+    def apply_completion(self, employee_id: str, skill_gains: Dict[str, int]) -> Dict[str, int]:
+        """Apply a completed learning resource for ONE employee.
+
+        skill_gains maps skill_id -> points gained. Proficiency is capped at 5.
+        Returns {skill_id: new_level} for the skills that were touched.
+        """
+        emp_skills = self._employee_skills.get(employee_id, [])
+        by_id = {es.skill_id: es for es in emp_skills}
+
+        updated: Dict[str, int] = {}
+        for skill_id, gain in skill_gains.items():
+            es = by_id.get(skill_id)
+            if es is None:
+                # Employee never had this skill — add it (learned from scratch)
+                skill_def = self._skills.get(skill_id)
+                if skill_def is None:
+                    continue
+                new_level = min(5, gain)
+                new_skill = EmployeeSkill(
+                    skill_id=skill_id,
+                    skill_name=skill_def.skill_name,
+                    category=skill_def.category,
+                    proficiency=new_level,
+                    source="Learning",
+                )
+                emp_skills.append(new_skill)  # same list object as Employee.skills
+                by_id[skill_id] = new_skill
+                updated[skill_id] = new_level
+
+                # Add a matching dataset row so rebuilds keep the new skill
+                if self._df is not None:
+                    emp_rows = self._df[self._df["employee_id"] == employee_id]
+                    if not emp_rows.empty:
+                        new_row = emp_rows.iloc[0].to_dict()
+                        new_row.update({
+                            "skill_id": skill_id,
+                            "skill_name": skill_def.skill_name,
+                            "skill_category": skill_def.category,
+                            "proficiency": new_level,
+                            "skill_source": "Learning",
+                        })
+                        self._df = pd.concat(
+                            [self._df, pd.DataFrame([new_row])], ignore_index=True
+                        )
+                continue
+
+            new_level = min(5, es.proficiency + gain)
+            es.proficiency = new_level
+            updated[skill_id] = new_level
+
+        # Keep the cached DataFrame consistent so entity rebuilds see the gains
+        if self._df is not None:
+            df_mask = self._df["employee_id"] == employee_id
+            for skill_id, gain in skill_gains.items():
+                if skill_id not in by_id:
+                    continue
+                m = df_mask & (self._df["skill_id"] == skill_id)
+                new_level = updated.get(skill_id)
+                if new_level is not None:
+                    self._df.loc[m, "proficiency"] = new_level
+
+        return updated
+
     # Getter methods
     def get_employees(self) -> List[Employee]:
         self.load_dataset()

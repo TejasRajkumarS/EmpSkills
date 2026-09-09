@@ -9,6 +9,8 @@ import type {
   OrganizationAnalytics,
   EmployeeReport,
   OrganizationReport,
+  LearningProgress,
+  CompletionResponse,
 } from '../types';
 
 const api = axios.create({
@@ -60,6 +62,16 @@ export const dashboardApi = {
 export const analyticsApi = {
   getOrganization: () =>
     api.get<OrganizationAnalytics>('/analytics/organization'),
+};
+
+export const progressApi = {
+  get: (employeeId: string) =>
+    api.get<LearningProgress>(`/progress/${employeeId}`),
+
+  complete: (employeeId: string, resourceId: string, targetRoleId: string) =>
+    api.post<CompletionResponse>(`/progress/${employeeId}/complete/${resourceId}`, null, {
+      params: { target_role_id: targetRoleId },
+    }),
 };
 
 export const reportApi = {

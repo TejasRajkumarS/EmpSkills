@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { employeeApi, roleApi, analysisApi } from '../../services/api';
+import { CURRENT_EMPLOYEE_ID } from '../../context/AuthContext';
 import type { Employee, Role, AnalysisResponse } from '../../types';
 import {
   BarChart,
@@ -12,9 +13,8 @@ import {
 } from 'recharts';
 
 export function RoleReadiness() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [analyses, setAnalyses] = useState<Record<string, AnalysisResponse>>({});
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState<string | null>(null);
@@ -23,10 +23,10 @@ export function RoleReadiness() {
     async function fetchData() {
       try {
         const [empRes, roleRes] = await Promise.all([
-          employeeApi.getAll(),
+          employeeApi.getById(CURRENT_EMPLOYEE_ID),
           roleApi.getAll(),
         ]);
-        setEmployees(empRes.data);
+        setCurrentEmployee(empRes.data);
         setRoles(roleRes.data);
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -38,10 +38,10 @@ export function RoleReadiness() {
   }, []);
 
   const handleCheckRole = async (roleId: string) => {
-    if (!selectedEmployeeId || !roleId) return;
+    if (!roleId) return;
     setChecking(roleId);
     try {
-      const res = await analysisApi.analyze(selectedEmployeeId, roleId);
+      const res = await analysisApi.analyze(CURRENT_EMPLOYEE_ID, roleId);
       setAnalyses(prev => ({ ...prev, [roleId]: res.data }));
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -49,8 +49,6 @@ export function RoleReadiness() {
       setChecking(null);
     }
   };
-
-  const selectedEmployee = employees.find(e => e.employee_id === selectedEmployeeId);
 
   if (loading) {
     return (
@@ -69,25 +67,16 @@ export function RoleReadiness() {
 
       <div className="card">
         <div className="card-header">
-          <h2 className="text-lg font-semibold text-gray-900">Select Employee</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Signed In As</h2>
         </div>
         <div className="card-body">
-          <select
-            value={selectedEmployeeId}
-            onChange={(e) => setSelectedEmployeeId(e.target.value)}
-            className="select max-w-md"
-          >
-            <option value="">Select yourself...</option>
-            {employees.map(e => (
-              <option key={e.employee_id} value={e.employee_id}>
-                {e.employee_name} ({e.employee_id})
-              </option>
-            ))}
-          </select>
+          <div className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 select max-w-md">
+            {currentEmployee ? `${currentEmployee.employee_name} (${currentEmployee.employee_id})` : 'Loading…'}
+          </div>
         </div>
       </div>
 
-      {selectedEmployee && (
+      {currentEmployee && (
         <div className="card">
           <div className="card-header">
             <h2 className="text-lg font-semibold text-gray-900">Your Role Readiness</h2>

@@ -202,3 +202,27 @@ export interface EmployeeReport {
 export interface OrganizationReport {
   analytics: OrganizationAnalytics;
 }
+
+export interface CompletedResource {
+  resource_id: string;
+  resource_title: string;
+  skill_gains: Record<string, number>;
+  duration_hours: number;
+  completed_at: string;
+}
+
+export interface LearningProgress {
+  employee_id: string;
+  completed_resources: CompletedResource[];
+  completed_count: number;
+  total_learning_hours: number;
+  skills_improved: string[];
+}
+
+export interface CompletionResponse {
+  already_completed: boolean;
+  message: string;
+  skill_gains?: Record<string, number>;
+  updated_skills?: Record<string, number>;
+  completed_count?: number;
+}

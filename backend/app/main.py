@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import health, employees, skills, roles, resources, analysis, dashboard, analytics, reports
+from app.routers import health, employees, skills, roles, resources, analysis, dashboard, analytics, reports, progress
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -11,7 +11,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,6 +26,7 @@ app.include_router(analysis.router, prefix=settings.API_V1_STR, tags=["analysis"
 app.include_router(dashboard.router, prefix=settings.API_V1_STR, tags=["dashboard"])
 app.include_router(analytics.router, prefix=settings.API_V1_STR, tags=["analytics"])
 app.include_router(reports.router, prefix=settings.API_V1_STR, tags=["reports"])
+app.include_router(progress.router, prefix=settings.API_V1_STR, tags=["progress"])
 
 
 @app.on_event("startup")

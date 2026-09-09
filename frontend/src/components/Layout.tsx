@@ -6,11 +6,13 @@ const employeeNavigation = [
   { name: 'Skill Audits', href: '/skill-audits' },
   { name: 'Role Readiness', href: '/role-readiness' },
   { name: 'Training Pathways', href: '/training-pathways' },
+  { name: 'My Report', href: '/my-report' },
 ];
 
 const hrNavigation = [
   { name: 'Workforce Staffing', href: '/workforce-staffing' },
   { name: 'HR Analytics Portal', href: '/hr-analytics' },
+  { name: 'Reports', href: '/reports' },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

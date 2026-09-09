@@ -5,6 +5,8 @@ import { Login } from './pages/Login';
 import { SkillAudits } from './pages/employee/SkillAudits';
 import { RoleReadiness } from './pages/employee/RoleReadiness';
 import { TrainingPathways } from './pages/employee/TrainingPathways';
+import { IndividualReport } from './pages/IndividualReport';
+import { Reports } from './pages/Reports';
 import { WorkforceStaffing } from './pages/hr/WorkforceStaffing';
 import { HRAnalyticsPortal } from './pages/hr/HRAnalyticsPortal';
 
@@ -44,6 +46,9 @@ function RoleBasedRoutes() {
             <Route path="/training-pathways" element={
               <PrivateRoute allowedRoles={['employee']}><TrainingPathways /></PrivateRoute>
             } />
+            <Route path="/my-report" element={
+              <PrivateRoute allowedRoles={['employee']}><IndividualReport /></PrivateRoute>
+            } />
             <Route path="/" element={<Navigate to="/skill-audits" replace />} />
             <Route path="*" element={<Navigate to="/skill-audits" replace />} />
           </>
@@ -56,6 +61,12 @@ function RoleBasedRoutes() {
             } />
             <Route path="/hr-analytics" element={
               <PrivateRoute allowedRoles={['hr']}><HRAnalyticsPortal /></PrivateRoute>
+            } />
+            <Route path="/reports" element={
+              <PrivateRoute allowedRoles={['hr']}><Reports /></PrivateRoute>
+            } />
+            <Route path="/reports/employee/:employeeId" element={
+              <PrivateRoute allowedRoles={['hr']}><IndividualReport /></PrivateRoute>
             } />
             <Route path="/" element={<Navigate to="/workforce-staffing" replace />} />
             <Route path="*" element={<Navigate to="/workforce-staffing" replace />} />

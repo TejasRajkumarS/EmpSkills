@@ -2,6 +2,9 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 
 type UserRole = 'employee' | 'hr' | null;
 
+// The employee portal represents this single signed-in employee.
+export const CURRENT_EMPLOYEE_ID = 'E001';
+
 interface AuthContextType {
   role: UserRole;
   login: (role: UserRole) => void;

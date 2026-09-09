@@ -185,8 +185,7 @@ export function WorkforceStaffing() {
                     <td className="py-3">
                       {emp.readiness && (
                         <button
-                          onClick={() => window.open(`/reports/employee/${emp.employee_id}?role=${selectedRoleId}`, '_blank')}
-                          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                          onClick={() => window.open(`/reports/employee/${emp.employee_id}?role=${selectedRoleId}`, '_blank')}                          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
                         >
                           View Report
                         </button>

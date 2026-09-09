@@ -1,0 +1,94 @@
+from fastapi import APIRouter, HTTPException
+from typing import Dict, List
+
+from app.config import settings
+from app.services.data_service import data_service
+from app.services.learning_progress_service import learning_progress_service
+
+router = APIRouter()
+
+
+def _compute_skill_gains(resource, current_skills: Dict[str, int], target_role_id: str) -> Dict[str, int]:
+    """How many proficiency points each addressed skill gains from completing
+    this resource, capped so a skill never exceeds its role target level."""
+    gains: Dict[str, int] = {}
+    targets = {}
+    if target_role_id:
+        for req in data_service.get_role_requirements(target_role_id):
+            targets[req.skill_id] = req.required_proficiency
+
+    for skill_id in resource.resource_skill_ids:
+        current = current_skills.get(skill_id, 0)  # 0 = skill not yet tracked → learnable from scratch
+        cap = min(5, targets.get(skill_id, 5))
+        gain = max(1, min(2, cap - current))  # +1 or +2 points per resource, never past the target
+        if gain <= 0 or current >= cap:
+            continue  # already at/above target — course teaches nothing new
+        gains[skill_id] = gain
+    return gains
+
+
+@router.get("/progress/{employee_id}")
+async def get_progress(employee_id: str):
+    employee = data_service.get_employee(employee_id)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+
+    completed = learning_progress_service.get_completed(employee_id)
+    total_hours = sum(c.get("duration_hours", 0) for c in completed)
+    skills_improved = set()
+    for c in completed:
+        skills_improved.update(c.get("skill_gains", {}).keys())
+
+    return {
+        "employee_id": employee_id,
+        "completed_resources": completed,
+        "completed_count": len(completed),
+        "total_learning_hours": total_hours,
+        "skills_improved": sorted(skills_improved),
+    }
+
+
+@router.post("/progress/{employee_id}/complete/{resource_id}")
+async def complete_resource(employee_id: str, resource_id: str, target_role_id: str = ""):
+    employee = data_service.get_employee(employee_id)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+
+    resource = data_service.get_resource(resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail=f"Resource {resource_id} not found")
+
+    if learning_progress_service.is_completed(employee_id, resource_id):
+        return {
+            "already_completed": True,
+            "message": "Resource already completed",
+            "updated_skills": {},
+        }
+
+    # Current proficiency map for this employee
+    current_skills = {s.skill_id: s.proficiency for s in employee.skills}
+
+    skill_gains = _compute_skill_gains(resource, current_skills, target_role_id)
+    if not skill_gains:
+        raise HTTPException(
+            status_code=400,
+            detail="This resource does not address any tracked skill for this employee",
+        )
+
+    # Record completion FIRST, then apply gains
+    learning_progress_service.mark_complete(
+        employee_id=employee_id,
+        resource_id=resource_id,
+        resource_title=resource.resource_title,
+        skill_gains=skill_gains,
+        duration_hours=resource.duration_hours,
+    )
+    updated = data_service.apply_completion(employee_id, skill_gains)
+
+    return {
+        "already_completed": False,
+        "message": f"Completed '{resource.resource_title}' — proficiency improved in {len(updated)} skill(s)",
+        "skill_gains": skill_gains,
+        "updated_skills": updated,
+        "completed_count": len(learning_progress_service.get_completed(employee_id)),
+    }
