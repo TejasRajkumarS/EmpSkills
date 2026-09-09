@@ -1,0 +1,41 @@
+resource_id,title,resource_type,difficulty,duration_hours,skill_ids,prerequisite_resource_ids
+LR001,Python Fundamentals,Course,Beginner,12,SK001,
+LR002,Intermediate Python Programming,Course,Intermediate,18,SK001,LR001
+LR003,SQL Fundamentals,Course,Beginner,10,SK005,
+LR004,Advanced SQL & Query Optimization,Course,Advanced,16,SK005,LR003
+LR005,Django Web Development,Course,Intermediate,20,SK009,LR001
+LR006,REST API Design Fundamentals,Course,Intermediate,12,SK010,LR003
+LR007,Docker Fundamentals,Course,Beginner,8,SK015,
+LR008,Containerized Application Project,Project,Intermediate,16,SK015;SK010,LR007;LR006
+LR009,AWS Cloud Fundamentals,Course,Beginner,14,SK013,
+LR010,AWS Application Deployment,Lab,Intermediate,18,SK013;SK011,LR009;LR011
+LR011,Git & GitHub Workflow,Course,Beginner,6,SK011,
+LR012,Kubernetes Basics,Course,Intermediate,14,SK016,LR007
+LR013,CI/CD Pipeline Workshop,Lab,Intermediate,12,SK017,LR011;LR007
+LR014,Terraform Infrastructure Basics,Course,Intermediate,12,SK018,LR009
+LR015,Linux Administration Essentials,Course,Beginner,14,SK012,
+LR016,Azure Fundamentals,Course,Beginner,12,SK014,
+LR017,Statistics for Data Analysis,Course,Intermediate,16,SK019,
+LR018,Pandas for Data Analysis,Course,Intermediate,12,SK020,LR001
+LR019,NumPy for Data Science,Course,Intermediate,10,SK021,LR001
+LR020,Power BI Dashboard Workshop,Project,Intermediate,14,SK022;SK026,LR023
+LR021,Machine Learning Fundamentals,Course,Intermediate,22,SK024,LR017;LR018
+LR022,Deep Learning Fundamentals,Course,Advanced,24,SK025,LR021
+LR023,Data Visualization Principles,Course,Beginner,8,SK026,
+LR024,Excel for Business Analytics,Course,Beginner,10,SK027,
+LR025,Network Security Fundamentals,Course,Intermediate,16,SK028,LR015
+LR026,SIEM Monitoring Workshop,Lab,Intermediate,14,SK029,LR025
+LR027,Tableau Analytics Fundamentals,Course,Intermediate,12,SK023,LR023
+LR028,Vulnerability Assessment Lab,Lab,Intermediate,18,SK030,LR025
+LR029,Applied Cryptography Basics,Course,Intermediate,14,SK031,LR025
+LR030,Figma UI Design Essentials,Course,Beginner,10,SK032,
+LR031,UI/UX Design Foundations,Course,Intermediate,16,SK033,LR030
+LR032,Manual Testing Fundamentals,Course,Beginner,10,SK034,
+LR033,Test Automation with Selenium,Lab,Intermediate,18,SK035;SK036,LR032
+LR034,Agile & Scrum Fundamentals,Course,Beginner,8,SK037,
+LR035,Jira Project Workflow,Course,Beginner,6,SK038,LR034
+LR036,System Design Fundamentals,Course,Intermediate,20,SK039,LR001;LR003
+LR037,Communication for Technical Professionals,Course,Beginner,6,SK040,
+LR038,React Application Development,Project,Intermediate,22,SK007;SK003,LR040
+LR039,Node.js Backend Development,Course,Intermediate,20,SK008;SK010,LR003;LR006
+LR040,JavaScript Fundamentals,Course,Beginner,14,SK003,
