@@ -11,6 +11,7 @@ import type {
   OrganizationReport,
   LearningProgress,
   CompletionResponse,
+  SkillAssignment,
 } from '../types';
 
 const api = axios.create({
@@ -71,6 +72,24 @@ export const progressApi = {
   complete: (employeeId: string, resourceId: string, targetRoleId: string) =>
     api.post<CompletionResponse>(`/progress/${employeeId}/complete/${resourceId}`, null, {
       params: { target_role_id: targetRoleId },
+    }),
+
+  completeAll: (employeeId: string, targetRoleId: string) =>
+    api.post<CompletionResponse>(`/progress/${employeeId}/complete-all`, null, {
+      params: { target_role_id: targetRoleId },
+    }),
+};
+
+export const assignmentApi = {
+  create: (payload: { employee_id: string; skill_id: string; target_role_id: string; note?: string }) =>
+    api.post<SkillAssignment>('/assignments', payload),
+
+  getAll: (employeeId?: string) =>
+    api.get<SkillAssignment[]>('/assignments', { params: employeeId ? { employee_id: employeeId } : undefined }),
+
+  complete: (assignmentId: string, employeeId: string) =>
+    api.post<SkillAssignment>(`/assignments/${assignmentId}/complete`, null, {
+      params: { employee_id: employeeId },
     }),
 };
 

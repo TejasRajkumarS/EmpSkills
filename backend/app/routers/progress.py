@@ -4,6 +4,9 @@ from typing import Dict, List
 from app.config import settings
 from app.services.data_service import data_service
 from app.services.learning_progress_service import learning_progress_service
+from app.services.learning_path_service import learning_path_service
+from app.services.recommendation_service import recommendation_service
+from app.services.analysis_service import gap_analysis_service
 
 router = APIRouter()
 
@@ -25,6 +28,62 @@ def _compute_skill_gains(resource, current_skills: Dict[str, int], target_role_i
             continue  # already at/above target — course teaches nothing new
         gains[skill_id] = gain
     return gains
+
+
+@router.post("/progress/{employee_id}/complete-all")
+async def complete_all(employee_id: str, target_role_id: str = ""):
+    """Mark every learning-path step for this role as completed in one call."""
+    employee = data_service.get_employee(employee_id)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+
+    role = data_service.get_role(target_role_id)
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Role {target_role_id} not found")
+
+    employee_skills = {s.skill_id: s for s in employee.skills}
+    role_requirements = data_service.get_role_requirements(target_role_id)
+    skill_gaps = gap_analysis_service.analyze_gaps(employee_skills, role_requirements)
+    recommendations = recommendation_service.generate_recommendations(
+        employee_id, target_role_id, skill_gaps, employee_skills, role_requirements
+    )
+    path_steps = learning_path_service.generate_learning_path(
+        employee_id,
+        target_role_id,
+        recommendations,
+        skill_gaps,
+        employee_skills,
+        role_requirements,
+    )
+
+    completed = 0
+    already = 0
+    for step in path_steps.steps:
+        resource = data_service.get_resource(step.resource_id)
+        if resource is None:
+            continue
+        if learning_progress_service.is_completed(employee_id, step.resource_id):
+            already += 1
+            continue
+        current_skills = {s.skill_id: s.proficiency for s in data_service.get_employee_skills(employee_id)}
+        skill_gains = _compute_skill_gains(resource, current_skills, target_role_id)
+        learning_progress_service.mark_complete(
+            employee_id=employee_id,
+            resource_id=step.resource_id,
+            resource_title=resource.resource_title,
+            skill_gains=skill_gains,
+            duration_hours=resource.duration_hours,
+        )
+        if skill_gains:
+            data_service.apply_completion(employee_id, skill_gains)
+        completed += 1
+
+    return {
+        "message": f"Marked {completed} course(s) as completed" + (f" ({already} already done)" if already else ""),
+        "newly_completed": completed,
+        "already_completed": already,
+        "completed_count": len(learning_progress_service.get_completed(employee_id)),
+    }
 
 
 @router.get("/progress/{employee_id}")
@@ -69,13 +128,10 @@ async def complete_resource(employee_id: str, resource_id: str, target_role_id: 
     current_skills = {s.skill_id: s.proficiency for s in employee.skills}
 
     skill_gains = _compute_skill_gains(resource, current_skills, target_role_id)
-    if not skill_gains:
-        raise HTTPException(
-            status_code=400,
-            detail="This resource does not address any tracked skill for this employee",
-        )
 
-    # Record completion FIRST, then apply gains
+    # Record completion FIRST, then apply gains. Zero-gain completions are
+    # still recorded: the employee may finish a course whose skills are
+    # already at the required level, and that must succeed, not 400.
     learning_progress_service.mark_complete(
         employee_id=employee_id,
         resource_id=resource_id,
@@ -83,11 +139,17 @@ async def complete_resource(employee_id: str, resource_id: str, target_role_id: 
         skill_gains=skill_gains,
         duration_hours=resource.duration_hours,
     )
-    updated = data_service.apply_completion(employee_id, skill_gains)
+
+    if skill_gains:
+        updated = data_service.apply_completion(employee_id, skill_gains)
+        message = f"Completed '{resource.resource_title}' — proficiency improved in {len(updated)} skill(s)"
+    else:
+        updated = {}
+        message = f"Completed '{resource.resource_title}' — skills already at the required level for this role"
 
     return {
         "already_completed": False,
-        "message": f"Completed '{resource.resource_title}' — proficiency improved in {len(updated)} skill(s)",
+        "message": message,
         "skill_gains": skill_gains,
         "updated_skills": updated,
         "completed_count": len(learning_progress_service.get_completed(employee_id)),

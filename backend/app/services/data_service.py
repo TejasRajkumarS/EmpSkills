@@ -37,13 +37,39 @@ class DataService:
             return self._df
 
         dataset_path = Path(settings.DATASET_PATH)
+        if not dataset_path.is_absolute():
+            # Resolve relative paths against the project root (services/ -> app/ -> backend/ -> root)
+            dataset_path = Path(__file__).parents[3] / dataset_path
         if not dataset_path.exists():
             raise FileNotFoundError(f"Dataset not found at {dataset_path}")
 
         self._df = pd.read_csv(dataset_path)
         self._validate_dataset()
         self._build_entities()
+        self._replay_persisted_gains()
         return self._df
+
+    def _replay_persisted_gains(self) -> None:
+        """Re-apply skill gains recorded in the persistent stores (completed
+        courses and completed skill-audit assignments) so proficiencies survive
+        backend restarts — the CSV on disk stays pristine as the base dataset."""
+        from app.services.learning_progress_service import learning_progress_service
+        from app.services.assignment_service import assignment_service
+
+        try:
+            for emp_id, record in learning_progress_service.all_records().items():
+                for completion in record.get("completed", []):
+                    gains = completion.get("skill_gains", {})
+                    if gains:
+                        self.apply_completion(emp_id, gains)
+            for assignment in assignment_service.get_all():
+                if assignment.get("status") == "completed":
+                    gains = assignment.get("skill_gains", {})
+                    if gains:
+                        self.apply_completion(assignment["employee_id"], gains)
+        except Exception as e:
+            # Never block startup on replay problems
+            print(f"[data_service] gain replay skipped: {e}")
 
     def _validate_dataset(self) -> None:
         required_columns = [

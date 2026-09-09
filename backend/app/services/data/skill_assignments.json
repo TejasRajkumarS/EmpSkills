@@ -1,0 +1,74 @@
+{
+  "E001": [
+    {
+      "assignment_id": "0c0e4b73a332",
+      "employee_id": "E001",
+      "skill_id": "SK003",
+      "skill_name": "JavaScript Programming",
+      "target_role_id": "R001",
+      "target_role": "Software Developer",
+      "assigned_by": "HR & L&D",
+      "note": "Please review before Q3 staffing",
+      "status": "completed",
+      "created_at": "2026-09-09T19:21:05.522308+00:00",
+      "completed_at": "2026-09-09T19:21:06.606885+00:00"
+    },
+    {
+      "assignment_id": "a705315106f7",
+      "employee_id": "E001",
+      "skill_id": "SK002",
+      "skill_name": "Java Programming",
+      "target_role_id": "R001",
+      "target_role": "Software Developer",
+      "assigned_by": "HR & L&D",
+      "note": "i have assigned it to you",
+      "status": "completed",
+      "created_at": "2026-09-09T19:30:00.722169+00:00",
+      "completed_at": "2026-09-09T19:54:05.155759+00:00"
+    },
+    {
+      "assignment_id": "fbfa6b8f4ab6",
+      "employee_id": "E001",
+      "skill_id": "SK002",
+      "skill_name": "Java Programming",
+      "target_role_id": "R001",
+      "target_role": "Software Developer",
+      "assigned_by": "HR & L&D",
+      "note": "",
+      "status": "completed",
+      "created_at": "2026-09-09T19:35:07.752748+00:00",
+      "completed_at": "2026-09-09T19:54:10.192395+00:00"
+    },
+    {
+      "assignment_id": "a030d4e08208",
+      "employee_id": "E001",
+      "skill_id": "SK011",
+      "skill_name": "Git",
+      "target_role_id": "R001",
+      "target_role": "Software Developer",
+      "assigned_by": "HR & L&D",
+      "note": "",
+      "status": "completed",
+      "created_at": "2026-09-09T19:59:35.945873+00:00",
+      "completed_at": "2026-09-09T19:59:36.467707+00:00",
+      "skill_gains": {
+        "SK011": 1
+      }
+    }
+  ],
+  "E014": [
+    {
+      "assignment_id": "72430cf955b1",
+      "employee_id": "E014",
+      "skill_id": "SK005",
+      "skill_name": "SQL",
+      "target_role_id": "R001",
+      "target_role": "Software Developer",
+      "assigned_by": "HR & L&D",
+      "note": "i have assigned this skill so just do it",
+      "status": "pending",
+      "created_at": "2026-09-09T19:28:32.215374+00:00",
+      "completed_at": null
+    }
+  ]
+}

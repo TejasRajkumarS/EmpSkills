@@ -52,6 +52,10 @@ class LearningProgressService:
         record = self._store.get(employee_id, {})
         return list(record.get("completed", []))
 
+    def all_records(self) -> Dict[str, Dict]:
+        self._ensure_loaded()
+        return {emp: {"completed": list(rec.get("completed", []))} for emp, rec in self._store.items()}
+
     def is_completed(self, employee_id: str, resource_id: str) -> bool:
         return any(c["resource_id"] == resource_id for c in self.get_completed(employee_id))
 

@@ -46,9 +46,6 @@ function RoleBasedRoutes() {
             <Route path="/training-pathways" element={
               <PrivateRoute allowedRoles={['employee']}><TrainingPathways /></PrivateRoute>
             } />
-            <Route path="/my-report" element={
-              <PrivateRoute allowedRoles={['employee']}><IndividualReport /></PrivateRoute>
-            } />
             <Route path="/" element={<Navigate to="/skill-audits" replace />} />
             <Route path="*" element={<Navigate to="/skill-audits" replace />} />
           </>

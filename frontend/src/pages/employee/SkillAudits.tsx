@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { employeeApi, roleApi, analysisApi } from '../../services/api';
+import { employeeApi, roleApi, analysisApi, assignmentApi } from '../../services/api';
 import { CURRENT_EMPLOYEE_ID } from '../../context/AuthContext';
-import type { Employee, Role, AnalysisResponse } from '../../types';
+import type { Employee, Role, AnalysisResponse, SkillAssignment } from '../../types';
 
 export function SkillAudits() {
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
+  const [assignments, setAssignments] = useState<SkillAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -20,6 +22,12 @@ export function SkillAudits() {
         ]);
         setCurrentEmployee(empRes.data);
         setRoles(roleRes.data);
+        try {
+          const assignRes = await assignmentApi.getAll(CURRENT_EMPLOYEE_ID);
+          setAssignments(assignRes.data);
+        } catch {
+          console.error('Failed to load assignments');
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -52,6 +60,30 @@ export function SkillAudits() {
   }
 
   const selectedRole = roles.find(r => r.target_role_id === selectedRoleId);
+  const pendingAssignments = assignments.filter(a => a.status === 'pending');
+  const completedAssignments = assignments.filter(a => a.status === 'completed');
+
+  const handleCompleteAssignment = async (assignmentId: string) => {
+    try {
+      const res = await assignmentApi.complete(assignmentId, CURRENT_EMPLOYEE_ID);
+      setAssignments(prev => prev.map(a => (a.assignment_id === assignmentId ? res.data : a)));
+
+      // The audit completion just improved a real skill — refresh profile and
+      // any open analysis so 'My Skill Profile' reflects it immediately.
+      const [empRes] = await Promise.all([
+        employeeApi.getById(CURRENT_EMPLOYEE_ID),
+        selectedRoleId
+          ? analysisApi.analyze(CURRENT_EMPLOYEE_ID, selectedRoleId).then(r => setAnalysis(r.data))
+          : Promise.resolve(),
+      ]);
+      setCurrentEmployee(empRes.data);
+      setToast(res.data?.message || 'Audit marked complete — skill updated.');
+      setTimeout(() => setToast(''), 4000);
+    } catch (err) {
+      console.error('Failed to complete assignment:', err);
+      alert('Failed to mark assignment as complete. Please try again.');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -59,6 +91,12 @@ export function SkillAudits() {
         <h1 className="text-2xl font-bold text-gray-900">Skill Audits</h1>
         <p className="text-gray-600 mt-1">Analyze your skills against target role requirements</p>
       </div>
+
+      {toast && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
+          {toast}
+        </div>
+      )}
 
       {currentEmployee && (
         <div className="card">
@@ -128,6 +166,58 @@ export function SkillAudits() {
           </button>
         </div>
       </div>
+
+      {assignments.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h2 className="text-lg font-semibold text-gray-900">Assigned Skill Audits</h2>
+            <p className="text-sm text-gray-600 mt-1">Skill audits assigned to you by HR &amp; L&amp;D</p>
+          </div>
+          <div className="card-body space-y-3">
+            {[...pendingAssignments, ...completedAssignments].map(a => (
+              <div
+                key={a.assignment_id}
+                className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg ${
+                  a.status === 'completed' ? 'bg-green-50/60 border-green-200' : 'border-yellow-200 bg-yellow-50/40'
+                }`}
+              >
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-gray-900">{a.skill_name}</span>
+                    <span className="badge badge-gray">for {a.target_role}</span>
+                    <span className={`badge ${a.status === 'completed' ? 'badge-success' : 'badge-warning'}`}>
+                      {a.status === 'completed' ? 'Completed' : 'Pending'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Assigned by {a.assigned_by}
+                    {a.note ? ` — "${a.note}"` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 whitespace-nowrap">
+                  <button
+                    onClick={() => {
+                      setSelectedRoleId(a.target_role_id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                  >
+                    Open Analysis
+                  </button>
+                  {a.status === 'pending' && (
+                    <button
+                      onClick={() => handleCompleteAssignment(a.assignment_id)}
+                      className="btn-secondary text-sm"
+                    >
+                      Mark Complete
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {analysis && (
         <div className="space-y-6">

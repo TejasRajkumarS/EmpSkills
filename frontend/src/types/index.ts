@@ -226,3 +226,21 @@ export interface CompletionResponse {
   updated_skills?: Record<string, number>;
   completed_count?: number;
 }
+
+export interface SkillAssignment {
+  assignment_id: string;
+  employee_id: string;
+  skill_id: string;
+  skill_name: string;
+  target_role_id: string;
+  target_role: string;
+  assigned_by: string;
+  note: string;
+  status: 'pending' | 'completed';
+  created_at: string;
+  completed_at: string | null;
+  // Present on the complete-assignment response only
+  skill_gains?: Record<string, number>;
+  updated_skills?: Record<string, number>;
+  message?: string;
+}

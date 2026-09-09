@@ -1,0 +1,84 @@
+{
+  "E001": {
+    "completed": [
+      {
+        "resource_id": "LR017",
+        "resource_title": "Statistics for Data Analysis",
+        "skill_gains": {
+          "SK019": 2
+        },
+        "duration_hours": 16.0,
+        "completed_at": "2026-09-09T19:00:57.182883+00:00"
+      },
+      {
+        "resource_id": "LR001",
+        "resource_title": "Python Fundamentals",
+        "skill_gains": {},
+        "duration_hours": 12.0,
+        "completed_at": "2026-09-09T19:00:59.399828+00:00"
+      },
+      {
+        "resource_id": "LR023",
+        "resource_title": "Data Visualization Principles",
+        "skill_gains": {
+          "SK026": 2
+        },
+        "duration_hours": 8.0,
+        "completed_at": "2026-09-09T19:01:03.253060+00:00"
+      },
+      {
+        "resource_id": "LR003",
+        "resource_title": "SQL Fundamentals",
+        "skill_gains": {},
+        "duration_hours": 10.0,
+        "completed_at": "2026-09-09T19:01:07.274716+00:00"
+      },
+      {
+        "resource_id": "LR018",
+        "resource_title": "Pandas for Data Analysis",
+        "skill_gains": {
+          "SK020": 2
+        },
+        "duration_hours": 12.0,
+        "completed_at": "2026-09-09T19:01:09.595950+00:00"
+      },
+      {
+        "resource_id": "LR019",
+        "resource_title": "NumPy for Data Science",
+        "skill_gains": {
+          "SK021": 2
+        },
+        "duration_hours": 10.0,
+        "completed_at": "2026-09-09T19:01:11.739226+00:00"
+      },
+      {
+        "resource_id": "LR020",
+        "resource_title": "Power BI Dashboard Workshop",
+        "skill_gains": {
+          "SK022": 2,
+          "SK026": 2
+        },
+        "duration_hours": 14.0,
+        "completed_at": "2026-09-09T19:01:16.585586+00:00"
+      },
+      {
+        "resource_id": "LR021",
+        "resource_title": "Machine Learning Fundamentals",
+        "skill_gains": {
+          "SK024": 2
+        },
+        "duration_hours": 22.0,
+        "completed_at": "2026-09-09T19:01:18.195490+00:00"
+      },
+      {
+        "resource_id": "LR040",
+        "resource_title": "JavaScript Fundamentals",
+        "skill_gains": {
+          "SK003": 2
+        },
+        "duration_hours": 14.0,
+        "completed_at": "2026-09-09T19:30:56.305091+00:00"
+      }
+    ]
+  }
+}
