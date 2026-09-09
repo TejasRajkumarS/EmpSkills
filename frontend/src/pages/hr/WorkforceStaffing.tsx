@@ -180,8 +180,8 @@ export function WorkforceStaffing() {
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="py-3 text-gray-900">{emp.skill_count}</td>
-                    <td className="py-3 text-gray-900">{emp.average_proficiency.toFixed(1)}</td>
+                    <td className="py-3 text-gray-900">{emp.skill_count ?? 0}</td>
+                    <td className="py-3 text-gray-900">{(emp.average_proficiency ?? 0).toFixed(1)}</td>
                     <td className="py-3">
                       {emp.readiness && (
                         <button

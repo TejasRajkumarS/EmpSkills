@@ -17,6 +17,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const { role, logout } = useAuth();
 
   const navigation = role === 'employee' ? employeeNavigation : role === 'hr' ? hrNavigation : [];
+  const homePath = role === 'hr' ? '/workforce-staffing' : '/skill-audits';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -24,7 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-8">
-              <Link to="/dashboard" className="text-xl font-bold text-primary-600">
+              <Link to={homePath} className="text-xl font-bold text-primary-600">
                 EmpSkil
               </Link>
               <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
